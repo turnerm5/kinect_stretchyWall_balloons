@@ -30,7 +30,7 @@ class KinectTracker {
 
     // We could skip processing the grayscale image for efficiency
     // but this example is just demonstrating everything
-    kinect.processDepthImage(true);
+    kinect.processDepthImage(false);
 
     display = createImage(kw,kh,PConstants.RGB);
 
@@ -92,10 +92,12 @@ class KinectTracker {
 
   float getForce(){
     //we need to determine what the second number should be.
-    force = contstrain(map(force, 0, 60, 0, 2),0,2);
+    force = constrain(map(force, 0, 60, 0, 2),0,2);
     return force;
   }
 
+
+  //need to enable
   void display() {
     
     PImage img = kinect.getDepthImage();
