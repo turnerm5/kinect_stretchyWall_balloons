@@ -57,46 +57,48 @@ class Balloon{
     
     fill(balloonColor, opacity);
     
-    stroke(255,20);
+    noStroke();
     ellipse(location.x, location.y, size, size);
     
   }
   
   void checkEdges() {
 
+    //slow down the balloons when they hit the wall
+    float bounceFactor = .9;
+
     if (location.y < (size/2)) {
       location.y = (size/2); 
-      velocity.y *= -.8;
+      velocity.y *= -bounceFactor;
       opacity = 180;
     } else if (location.y > height - (size/2)) {
       location.y = height - (size/2); 
-      velocity.y *= -.8;
+      velocity.y *= -bounceFactor;
       opacity = 180;
     }
     
     if (location.x < (size/2)) {
       location.x = (size/2); 
-      velocity.x *= -.8;
+      velocity.x *= -bounceFactor;
       opacity = 180;
     } else if (location.x > width- (size/2)) {
       location.x = width - (size/2); 
-      velocity.x *= -.8;
+      velocity.x *= -bounceFactor;
       opacity = 180;
     }
   }
   
   
   void repel(PVector finger, float force) {
-    
     PVector mouse = finger.get();
     mouse.sub(location);
     float distance = mouse.mag();
-    distance = constrain(distance, 25, 500);
+    distance = constrain(distance, 50, 800);
     //change the number here for the gravitational constant
-    float grav = (force * direction * mass) / ( distance * distance);
+    float grav = (force * direction * mass) / ( distance * distance );
     mouse.normalize();
     mouse.mult(grav);
-    acceleration.add(mouse);
+    applyForces(mouse);
   }
   
   

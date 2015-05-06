@@ -13,7 +13,7 @@ Kinect kinect;
 Balloon[] balloons = new Balloon[150];
 color fillColor = color(165,33,26);
 
-int direction = 1;
+int direction = -1;
 
 void setup() {
   size(1024,768);
@@ -24,7 +24,11 @@ void setup() {
   }
   
   for (int i = 0; i < balloons.length; i++) { 
-    balloons[i] = new Balloon(random(200, 400.0),random(50, width - 50),random(50, height - 50), fillColor);
+    balloons[i] = new Balloon(
+      random(50.0, 400.0),
+      random(50, width - 50),
+      random(50, height - 50), 
+      fillColor);
   }
 }
 
@@ -63,7 +67,7 @@ void draw() {
     ellipse(mouse.x, mouse.y, 20, 20);
     
     for (int i = 0; i < balloons.length; i++) {
-      balloons[i].repel(mouse, .5); 
+      balloons[i].repel(mouse, 100); 
       balloons[i].run();
     }
   }
@@ -72,6 +76,7 @@ void draw() {
 void keyPressed() {
   
   if (!debugMode){
+    
     //make it easy to adjust our threshold
     int t = tracker.getThreshold();
     if (key == CODED) {
@@ -85,6 +90,7 @@ void keyPressed() {
       }
     }
   }
+  
   //if we hit space, change the color and direction!
   if (key == ' ') {
     direction *= -1;

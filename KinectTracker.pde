@@ -92,7 +92,7 @@ class KinectTracker {
 
   float getForce(){
     //we need to determine what the second number should be.
-    force = constrain(map(force, 0, 60, 0, 2),0,2);
+    force = constrain(map(force, 0, 100, 20, 400),20,400);
     return force;
   }
 

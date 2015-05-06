@@ -21,7 +21,7 @@ public class stretchyWall extends PApplet {
 
 
 //turns off the Kinect sensing, uses the mouse as input
-Boolean debugMode = false;
+Boolean debugMode = true;
 
 // Showing how we can farm all the kinect stuff out to a separate class
 KinectTracker tracker;
@@ -32,7 +32,7 @@ Kinect kinect;
 Balloon[] balloons = new Balloon[150];
 int fillColor = color(165,33,26);
 
-int direction = 1;
+int direction = -1;
 
 public void setup() {
   size(1024,768);
@@ -43,7 +43,11 @@ public void setup() {
   }
   
   for (int i = 0; i < balloons.length; i++) { 
-    balloons[i] = new Balloon(random(200, 400.0f),random(50, width - 50),random(50, height - 50), fillColor);
+    balloons[i] = new Balloon(
+      random(50.0f, 400.0f),
+      random(50, width - 50),
+      random(50, height - 50), 
+      fillColor);
   }
 }
 
@@ -82,7 +86,7 @@ public void draw() {
     ellipse(mouse.x, mouse.y, 20, 20);
     
     for (int i = 0; i < balloons.length; i++) {
-      balloons[i].repel(mouse, .5f); 
+      balloons[i].repel(mouse, 100); 
       balloons[i].run();
     }
   }
@@ -91,6 +95,7 @@ public void draw() {
 public void keyPressed() {
   
   if (!debugMode){
+    
     //make it easy to adjust our threshold
     int t = tracker.getThreshold();
     if (key == CODED) {
@@ -104,6 +109,7 @@ public void keyPressed() {
       }
     }
   }
+  
   //if we hit space, change the color and direction!
   if (key == ' ') {
     direction *= -1;
@@ -176,46 +182,47 @@ class Balloon{
     
     fill(balloonColor, opacity);
     
-    stroke(255,20);
+    noStroke();
     ellipse(location.x, location.y, size, size);
     
   }
   
   public void checkEdges() {
 
+    float bounceFactor = 20;
+
     if (location.y < (size/2)) {
       location.y = (size/2); 
-      velocity.y *= -.8f;
+      velocity.y *= -bounceFactor;
       opacity = 180;
     } else if (location.y > height - (size/2)) {
       location.y = height - (size/2); 
-      velocity.y *= -.8f;
+      velocity.y *= -bounceFactor;
       opacity = 180;
     }
     
     if (location.x < (size/2)) {
       location.x = (size/2); 
-      velocity.x *= -.8f;
+      velocity.x *= -bounceFactor;
       opacity = 180;
     } else if (location.x > width- (size/2)) {
       location.x = width - (size/2); 
-      velocity.x *= -.8f;
+      velocity.x *= -bounceFactor;
       opacity = 180;
     }
   }
   
   
   public void repel(PVector finger, float force) {
-    
     PVector mouse = finger.get();
     mouse.sub(location);
     float distance = mouse.mag();
-    distance = constrain(distance, 25, 500);
+    distance = constrain(distance, 50, 800);
     //change the number here for the gravitational constant
-    float grav = (force * direction * mass) / ( distance * distance);
+    float grav = (force * direction * mass) / ( distance * distance );
     mouse.normalize();
     mouse.mult(grav);
-    acceleration.add(mouse);
+    applyForces(mouse);
   }
   
   
@@ -322,7 +329,7 @@ class KinectTracker {
 
   public float getForce(){
     //we need to determine what the second number should be.
-    force = constrain(map(force, 0, 60, 0, 2),0,2);
+    force = constrain(map(force, 0, 100, 20, 400),20,400);
     return force;
   }
 
@@ -374,6 +381,28 @@ class KinectTracker {
   public void setThreshold(int t) {
     threshold =  t;
   }
+}
+class RectangularBalloon extends Balloon {
+	
+	RectangularBalloon(float tempM, float tempX, float tempY, int tempFillColor) {
+  	super(tempM, tempX, tempY, tempFillColor);
+  }
+
+	public void display() {
+    
+    
+    if (opacity > 80){
+      opacity -= 2;
+    }
+    
+    fill(balloonColor, opacity);
+    
+    stroke(255,20);
+    rectMode(CENTER);
+    rect(location.x, location.y, size, size);
+    
+  }
+  
 }
   static public void main(String[] passedArgs) {
     String[] appletArgs = new String[] { "stretchyWall" };
