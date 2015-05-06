@@ -24,8 +24,10 @@ void setup() {
   }
   
   for (int i = 0; i < balloons.length; i++) { 
+
+    float mass = random(200.0, 400.0);
     balloons[i] = new Balloon(
-      random(50.0, 400.0),
+      mass,
       random(50, width - 50),
       random(50, height - 50), 
       fillColor);
