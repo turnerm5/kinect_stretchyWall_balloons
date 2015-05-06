@@ -1,3 +1,5 @@
+//Thanks to Daniel Shiffman!
+
 class KinectTracker {
 
   // Size of kinect image
@@ -90,16 +92,8 @@ class KinectTracker {
 
   float getForce(){
     //we need to determine what the second number should be.
-    force = contstrain(map(force, 0, 100, 0, 5),0,5);
+    force = contstrain(map(force, 0, 60, 0, 2),0,2);
     return force;
-  }
-
-  Boolean tracking() {
-    if (tracking) {
-      return true;
-    } else {
-      return false;
-    }
   }
 
   void display() {
@@ -129,10 +123,12 @@ class KinectTracker {
         }
       }
     }
+
     display.updatePixels();
 
     // Draw the image
     image(display,0,0);
+
   }
 
   void quit() {

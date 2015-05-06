@@ -18,7 +18,23 @@ class Balloon{
     balloonColor = tempFillColor;
     opacity = 80;
   }
-  
+
+  void run() {
+    update();
+    friction();
+    checkEdges();
+    display();
+  }
+
+  void friction() {
+    float c = 0.8;
+    PVector friction = velocity.get();
+    friction.mult(-1);
+    friction.normalize();
+    friction.mult(c);
+    applyForces(friction);
+  }
+
   void applyForces(PVector force) {
     PVector f = force.get();
     f.div(mass);
@@ -30,7 +46,6 @@ class Balloon{
     velocity.limit(topspeed);
     location.add(velocity);
     acceleration.mult(0);
-     
   }
   
   void display() {

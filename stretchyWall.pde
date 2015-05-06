@@ -1,9 +1,3 @@
-// Daniel Shiffman
-// Tracking the average location beyond a given depth threshold
-// Thanks to Dan O'Sullivan
-// http://www.shiffman.net
-// https://github.com/shiffman/libfreenect/tree/master/wrappers/java/processing
-
 import org.openkinect.*;
 import org.openkinect.processing.*;
 
@@ -36,7 +30,7 @@ void draw() {
   // Let's draw the raw location
   PVector v1 = tracker.getPos();
   float force = tracker.getForce();
-  if (tracker.tracking()){
+  if (tracker.tracking{
 
     fill(100);
     noStroke();
@@ -45,31 +39,20 @@ void draw() {
 
   //for every balloon 
   for (int i = 0; i < balloons.length; i++) {
-    
-    //add friction to our world, so they don't bounce around forever
-    float c = 0.8;
-    PVector friction = balloons[i].velocity.get();
-    friction.mult(-1);
-    friction.normalize();
-    friction.mult(c);
-    
-
-    balloons[i].applyForces(friction);
-    
-    if (tracker.tracking()){
-      balloons[i].repel(v1, force ); 
+        
+    if (tracker.tracking){
+      balloons[i].repel(v1, force); 
     }
     
-
-    balloons[i].update();
-    balloons[i].checkEdges();
-    balloons[i].display();
+    balloons[i].run();
 
   }
 
 }
 
 void keyPressed() {
+  
+  //make it easy to adjust our threshold
   int t = tracker.getThreshold();
   if (key == CODED) {
     if (keyCode == UP) {
@@ -82,6 +65,7 @@ void keyPressed() {
     }
   }
 
+  //if we hit space, change the color and direction!
   if (key == ' ') {
     direction *= -1;
     for (int i = 0; i < balloons.length; i++) {
