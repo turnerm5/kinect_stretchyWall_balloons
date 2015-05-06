@@ -12,11 +12,13 @@ KinectTracker tracker;
 // Kinect Library object
 Kinect kinect;
 
-Balloon[] balloons = new Balloon[100];
+Balloon[] balloons = new Balloon[150];
 color fillColor = color(165,33,26);
 
+int direction = 1;
+
 void setup() {
-  size(640,480);
+  size(1024,768);
   kinect = new Kinect(this);
   tracker = new KinectTracker();
 
@@ -33,6 +35,12 @@ void draw() {
   
   // Let's draw the raw location
   PVector v1 = tracker.getPos();
+  if (tracker.tracking()){
+
+    fill(100);
+    noStroke();
+    ellipse(v1.x, v1.y, 20, 20);
+  }
 
   //for every balloon 
   for (int i = 0; i < balloons.length; i++) {
@@ -47,7 +55,7 @@ void draw() {
 
     balloons[i].applyForces(friction);
     
-    if (tracker.repelling()){
+    if (tracker.tracking()){
       balloons[i].repel(v1); 
     }
     
@@ -70,6 +78,13 @@ void keyPressed() {
     else if (keyCode == DOWN) {
       t-=5;
       tracker.setThreshold(t);
+    }
+  }
+
+  if (key == ' ') {
+    direction *= -1;
+    for (int i = 0; i < balloons.length; i++) {
+      balloons[i].changeColor();
     }
   }
 }

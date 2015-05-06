@@ -11,7 +11,7 @@ class KinectTracker {
   // Interpolated location
   PVector lerpedLoc;
 
-  Boolean repelling = false;
+  Boolean tracking = false;
 
   // Depth data
   int[] depth;
@@ -37,7 +37,7 @@ class KinectTracker {
 
   void track() {
 
-    repelling = false;
+    tracking = false;
 
     // Get the raw depth as array of integers
     depth = kinect.getRawDepth();
@@ -58,7 +58,7 @@ class KinectTracker {
 
         // Testing against threshold
         if (rawDepth < threshold) {
-          repelling = true;
+          tracking = true;
           sumX += x;
           sumY += y;
           count++;
@@ -68,6 +68,8 @@ class KinectTracker {
     // As long as we found something
     if (count != 0) {
       loc = new PVector(sumX/count,sumY/count);
+      loc.x = map(loc.x,0,kw,0,width);
+      loc.y = map(loc.y,0,kh,0,height);
     }
 
     // Interpolating the location, doing it arbitrarily for now
@@ -83,8 +85,8 @@ class KinectTracker {
     return loc;
   }
 
-  Boolean repelling() {
-    if (repelling) {
+  Boolean tracking() {
+    if (tracking) {
       return true;
     } else {
       return false;

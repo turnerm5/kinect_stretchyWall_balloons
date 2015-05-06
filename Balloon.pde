@@ -78,7 +78,7 @@ class Balloon{
     float distance = mouse.mag();
     distance = constrain(distance, 25, 500);
     //change the number here for the gravitational constant
-    float grav = (-1 * mass) / ( distance * distance);
+    float grav = (direction * mass) / ( distance * distance);
     mouse.normalize();
     mouse.mult(grav);
     acceleration.add(mouse);

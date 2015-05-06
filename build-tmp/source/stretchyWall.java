@@ -31,11 +31,13 @@ KinectTracker tracker;
 // Kinect Library object
 Kinect kinect;
 
-Balloon[] balloons = new Balloon[100];
+Balloon[] balloons = new Balloon[150];
 int fillColor = color(165,33,26);
 
+int direction = 1;
+
 public void setup() {
-  size(640,480);
+  size(1024,768);
   kinect = new Kinect(this);
   tracker = new KinectTracker();
 
@@ -49,11 +51,16 @@ public void draw() {
 
   // Run the tracking analysis
   tracker.track();
-  tracker.display();
   
   // Let's draw the raw location
   PVector v1 = tracker.getPos();
-  
+  if (tracker.tracking()){
+
+    fill(100);
+    noStroke();
+    ellipse(v1.x, v1.y, 20, 20);
+  }
+
   //for every balloon 
   for (int i = 0; i < balloons.length; i++) {
     
@@ -67,7 +74,7 @@ public void draw() {
 
     balloons[i].applyForces(friction);
     
-    if (tracker.repelling()){
+    if (tracker.tracking()){
       balloons[i].repel(v1); 
     }
     
@@ -90,6 +97,13 @@ public void keyPressed() {
     else if (keyCode == DOWN) {
       t-=5;
       tracker.setThreshold(t);
+    }
+  }
+
+  if (key == ' ') {
+    direction *= -1;
+    for (int i = 0; i < balloons.length; i++) {
+      balloons[i].changeColor();
     }
   }
 }
@@ -178,7 +192,7 @@ class Balloon{
     float distance = mouse.mag();
     distance = constrain(distance, 25, 500);
     //change the number here for the gravitational constant
-    float grav = (-1 * mass) / ( distance * distance);
+    float grav = (direction * mass) / ( distance * distance);
     mouse.normalize();
     mouse.mult(grav);
     acceleration.add(mouse);
@@ -207,7 +221,7 @@ class KinectTracker {
   // Interpolated location
   PVector lerpedLoc;
 
-  Boolean repelling = false;
+  Boolean tracking = false;
 
   // Depth data
   int[] depth;
@@ -233,7 +247,7 @@ class KinectTracker {
 
   public void track() {
 
-    repelling = false;
+    tracking = false;
 
     // Get the raw depth as array of integers
     depth = kinect.getRawDepth();
@@ -254,7 +268,7 @@ class KinectTracker {
 
         // Testing against threshold
         if (rawDepth < threshold) {
-          repelling = true;
+          tracking = true;
           sumX += x;
           sumY += y;
           count++;
@@ -264,6 +278,8 @@ class KinectTracker {
     // As long as we found something
     if (count != 0) {
       loc = new PVector(sumX/count,sumY/count);
+      loc.x = map(loc.x,0,kw,0,width);
+      loc.y = map(loc.y,0,kh,0,height);
     }
 
     // Interpolating the location, doing it arbitrarily for now
@@ -279,8 +295,8 @@ class KinectTracker {
     return loc;
   }
 
-  public Boolean repelling() {
-    if (repelling) {
+  public Boolean tracking() {
+    if (tracking) {
       return true;
     } else {
       return false;
