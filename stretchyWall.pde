@@ -35,6 +35,7 @@ void draw() {
   
   // Let's draw the raw location
   PVector v1 = tracker.getPos();
+  float force = tracker.getForce();
   if (tracker.tracking()){
 
     fill(100);
@@ -56,7 +57,7 @@ void draw() {
     balloons[i].applyForces(friction);
     
     if (tracker.tracking()){
-      balloons[i].repel(v1); 
+      balloons[i].repel(v1, force ); 
     }
     
 

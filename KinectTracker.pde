@@ -16,6 +16,7 @@ class KinectTracker {
   // Depth data
   int[] depth;
 
+  float force;
 
   PImage display;
 
@@ -62,12 +63,14 @@ class KinectTracker {
           sumX += x;
           sumY += y;
           count++;
+          force += (rawDepth - threshold);
         }
       }
     }
     // As long as we found something
     if (count != 0) {
       loc = new PVector(sumX/count,sumY/count);
+      force = force / count;
       loc.x = map(loc.x,0,kw,0,width);
       loc.y = map(loc.y,0,kh,0,height);
     }
@@ -83,6 +86,12 @@ class KinectTracker {
 
   PVector getPos() {
     return loc;
+  }
+
+  float getForce(){
+    //we need to determine what the second number should be.
+    force = contstrain(map(force, 0, 100, 0, 5),0,5);
+    return force;
   }
 
   Boolean tracking() {

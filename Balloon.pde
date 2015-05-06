@@ -71,14 +71,14 @@ class Balloon{
   }
   
   
-  void repel(PVector finger) {
+  void repel(PVector finger, float force) {
     
     PVector mouse = finger.get();
     mouse.sub(location);
     float distance = mouse.mag();
     distance = constrain(distance, 25, 500);
     //change the number here for the gravitational constant
-    float grav = (direction * mass) / ( distance * distance);
+    float grav = (force * direction * mass) / ( distance * distance);
     mouse.normalize();
     mouse.mult(grav);
     acceleration.add(mouse);
