@@ -4,7 +4,7 @@ class Balloon{
   PVector velocity;
   PVector acceleration;
   float mass;
-  float topspeed = 2;
+  float topspeed = 4;
   float size;
   int opacity;
   color balloonColor;
@@ -49,11 +49,6 @@ class Balloon{
   }
   
   void display() {
-    
-    
-    if (opacity > 80){
-      opacity -= 2;
-    }
     
     fill(balloonColor, opacity);
     

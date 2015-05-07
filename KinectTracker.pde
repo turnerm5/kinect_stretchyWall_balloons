@@ -1,11 +1,13 @@
-//Thanks to Daniel Shiffman!
-
 class KinectTracker {
-
   // Size of kinect image
   int kw = 640;
   int kh = 480;
-  int threshold = 635;
+  int threshold = 765;
+  int depthMax = 0;
+  int deepX;
+  int deepY;
+  float force;
+  boolean tracking;
 
   // Raw location
   PVector loc;
@@ -13,24 +15,22 @@ class KinectTracker {
   // Interpolated location
   PVector lerpedLoc;
 
-  Boolean tracking = false;
-
   // Depth data
   int[] depth;
 
-  float force;
+  //how much does the kinect tilt?
+  float deg = 0;
 
   PImage display;
 
   KinectTracker() {
     kinect.start();
     kinect.enableDepth(true);
-    float deg = 0;
     kinect.tilt(deg);
 
     // We could skip processing the grayscale image for efficiency
     // but this example is just demonstrating everything
-    kinect.processDepthImage(false);
+    kinect.processDepthImage(true);
 
     display = createImage(kw,kh,PConstants.RGB);
 
@@ -39,8 +39,6 @@ class KinectTracker {
   }
 
   void track() {
-
-    tracking = false;
 
     // Get the raw depth as array of integers
     depth = kinect.getRawDepth();
@@ -52,34 +50,38 @@ class KinectTracker {
     float sumY = 0;
     float count = 0;
 
+    depthMax = 99999;
+    
+    tracking = false;    
+
     for(int x = 0; x < kw; x++) {
       for(int y = 0; y < kh; y++) {
         // Mirroring the image
         int offset = kw-x-1+y*kw;
         // Grabbing the raw depth
         int rawDepth = depth[offset];
-
         // Testing against threshold
         if (rawDepth < threshold) {
           tracking = true;
-          sumX += x;
-          sumY += y;
-          count++;
-          force += (rawDepth - threshold);
+          if (rawDepth < depthMax) {
+            depthMax = rawDepth;
+            deepY = y;
+            deepX = x;
+            count += 1;
+          }
         }
       }
     }
     // As long as we found something
     if (count != 0) {
-      loc = new PVector(sumX/count,sumY/count);
-      force = force / count;
-      loc.x = map(loc.x,0,kw,0,width);
-      loc.y = map(loc.y,0,kh,0,height);
+      deepY = (int)map(deepY, 30, 370, 0, kh);
+      deepX = (int)map(deepX, 140, 550, 0, kw);
+      loc = new PVector(deepX,deepY);
     }
 
     // Interpolating the location, doing it arbitrarily for now
-    lerpedLoc.x = PApplet.lerp(lerpedLoc.x, loc.x, 0.9f);
-    lerpedLoc.y = PApplet.lerp(lerpedLoc.y, loc.y, 0.9f);
+    lerpedLoc.x = PApplet.lerp(lerpedLoc.x, loc.x, 0.3f);
+    lerpedLoc.y = PApplet.lerp(lerpedLoc.y, loc.y, 0.3f);
   }
 
   PVector getLerpedPos() {
@@ -87,19 +89,12 @@ class KinectTracker {
   }
 
   PVector getPos() {
+    loc.x = map(loc.x,0,kw,0,width);
+    loc.y = map(loc.y,0,kh,0,height);
     return loc;
   }
 
-  float getForce(){
-    //we need to determine what the second number should be.
-    force = constrain(map(force, 0, 100, 20, 400),20,400);
-    return force;
-  }
-
-
-  //need to enable
   void display() {
-    
     PImage img = kinect.getDepthImage();
 
     // Being overly cautious here
@@ -125,12 +120,10 @@ class KinectTracker {
         }
       }
     }
-
     display.updatePixels();
 
     // Draw the image
     image(display,0,0);
-
   }
 
   void quit() {
@@ -144,4 +137,21 @@ class KinectTracker {
   void setThreshold(int t) {
     threshold =  t;
   }
+
+
+  float getForce(){
+    
+    //we need to determine what the second number should be.
+    int minForce = 100;
+    int maxForce = 500;
+    int distancePastThreshold = 60;
+
+    force = constrain(map(force, 0, distancePastThreshold, minForce, maxForce),minForce,maxForce);
+    return force;
+  }
+
+  boolean tracking(){
+    return tracking;
+  }
+
 }
