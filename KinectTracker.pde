@@ -2,26 +2,36 @@ class KinectTracker {
   // Size of kinect image
   int kw = 640;
   int kh = 480;
+  
+  //depth threshold
   int threshold = 765;
-  int depthMax = 0;
-  int deepX;
-  int deepY;
+  
+  //how hard is someone pushing into the screen?
   float force;
+  
+  //Are we tracking something?
   boolean tracking;
 
-  // Raw location
+  // location of tracked point
   PVector loc;
-
-  // Interpolated location
-  PVector lerpedLoc;
 
   // Depth data
   int[] depth;
+  //track where we found the deepest value
+  int deepX;
+  int deepY;
 
   //how much does the kinect tilt?
   float deg = 0;
 
+  //be able to get our display pixels
   PImage display;
+
+  // correct for the kinect and projector alignment
+  int leftCorrection;
+  int rightCorrection;
+  int topCorrection;
+  int bottomCorrection;
 
   KinectTracker() {
     kinect.start();
@@ -29,13 +39,10 @@ class KinectTracker {
     kinect.tilt(deg);
 
     // We could skip processing the grayscale image for efficiency
-    // but this example is just demonstrating everything
+    // but it helps for debugging the threshold
     kinect.processDepthImage(true);
-
     display = createImage(kw,kh,PConstants.RGB);
-
     loc = new PVector(0,0);
-    lerpedLoc = new PVector(0,0);
   }
 
   void track() {
@@ -46,46 +53,48 @@ class KinectTracker {
     // Being overly cautious here
     if (depth == null) return;
 
-    float sumX = 0;
-    float sumY = 0;
-    float count = 0;
-
-    depthMax = 99999;
+    //reset our closest depth
+    int depthMax = 99999;
     
+    //default to false, unless we're tracking something
     tracking = false;    
 
+    //for every value in the Kinect depth array.
     for(int x = 0; x < kw; x++) {
       for(int y = 0; y < kh; y++) {
-        // Mirroring the image
+        
+        // Mirror the image
         int offset = kw-x-1+y*kw;
-        // Grabbing the raw depth
+        
+        // Grab the raw depth value
         int rawDepth = depth[offset];
-        // Testing against threshold
+        
+        // Test against threshold
         if (rawDepth < threshold) {
+          //if we found something, we're tracking!
           tracking = true;
+          
+          //if it's the closest value, remember it, and its coordinates
           if (rawDepth < depthMax) {
             depthMax = rawDepth;
             deepY = y;
             deepX = x;
-            count += 1;
           }
         }
       }
     }
-    // As long as we found something
-    if (count != 0) {
-      deepY = (int)map(deepY, 30, 370, 0, kh);
-      deepX = (int)map(deepX, 140, 550, 0, kw);
-      loc = new PVector(deepX,deepY);
+
+    // If we found something
+    if (tracking) {
+      
+      //correct the location point for the misalignment of the kinect and proj.
+      //should we be correcting the whole image, not just the point?
+      int correctedY = (int)map(deepY, offsets[0], offsets[1], 0, kh);
+      int correctedX = (int)map(deepX, offsets[2], offsets[3], 0, kw);
+      
+      //save the location, corrected to the screen
+      loc = new PVector(correctedX,correctedY);    
     }
-
-    // Interpolating the location, doing it arbitrarily for now
-    lerpedLoc.x = PApplet.lerp(lerpedLoc.x, loc.x, 0.3f);
-    lerpedLoc.y = PApplet.lerp(lerpedLoc.y, loc.y, 0.3f);
-  }
-
-  PVector getLerpedPos() {
-    return lerpedLoc;
   }
 
   PVector getPos() {
@@ -95,14 +104,16 @@ class KinectTracker {
   }
 
   void display() {
-    PImage img = kinect.getDepthImage();
-
+    
     // Being overly cautious here
-    if (depth == null || img == null) return;
+    if (depth == null) return;
 
     // Going to rewrite the depth image to show which pixels are in threshold
     // A lot of this is redundant, but this is just for demonstration purposes
+    
+    //Always reload the pixels
     display.loadPixels();
+    
     for(int x = 0; x < kw; x++) {
       for(int y = 0; y < kh; y++) {
         // mirroring image
@@ -110,16 +121,21 @@ class KinectTracker {
         // Raw depth
         int rawDepth = depth[offset];
 
+        //What is the index of the array?
         int pix = x+y*display.width;
+
         if (rawDepth < threshold) {
-          // A red color instead
+          // A red color
           display.pixels[pix] = color(150,50,50);
         } 
         else {
-          display.pixels[pix] = img.pixels[offset];
+          //A dark gray
+          display.pixels[pix] = color(100);
         }
       }
     }
+    
+    //Always update the pixels at the end
     display.updatePixels();
 
     // Draw the image
@@ -135,23 +151,35 @@ class KinectTracker {
   }
 
   void setThreshold(int t) {
-    threshold =  t;
+    threshold = t;
   }
 
-
+  //remaps the force, so when you push in more, the force returned is greater
   float getForce(){
     
-    //we need to determine what the second number should be.
-    int minForce = 100;
-    int maxForce = 500;
-    int distancePastThreshold = 60;
+    //what is the range of forces that are allowed?
+    int minForce = 200;
+    int maxForce = 600;
+    
+    // how far past the trigger threshold can someone push in?
+    int distancePastThreshold = 70;
 
-    force = constrain(map(force, 0, distancePastThreshold, minForce, maxForce),minForce,maxForce);
+    force = constrain(
+      map(
+        force, 
+        0, distancePastThreshold, 
+        minForce, maxForce
+      ),
+      minForce,maxForce
+    );
+    
     return force;
   }
 
-  boolean tracking(){
-    return tracking;
+  //be able to adjust our corrections
+  void setOffset(int offsetIndex, int offsetChange){
+    offsets[offsetIndex] += offsetChange;
+    println("offsets[" + offsetIndex + "]:" + offsets[offsetIndex] );  
   }
 
 }
